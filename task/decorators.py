@@ -25,8 +25,8 @@ def validate_update_data(fn):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif not completed is None:
-            if not completed in ['True', 'False']:
+        elif not completed is None: 
+            if not completed in ['True', 'False', 'true', 'false']:
                 return Response(
                 data={
                     "message": "'completed' only accept 'True' or 'False'"

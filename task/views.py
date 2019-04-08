@@ -3,6 +3,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
 
+from django_filters import rest_framework as filters
+
 # Create your views here.
 from django.http import HttpResponse
 
@@ -10,9 +12,14 @@ from .decorators import validate_update_data, validate_create_data
 from .models import Task
 from .serializers import TasksSerializer
 
+class MyFilterSet(filters.FilterSet):
+    class Meta:
+        model = Task
+        fields = {'completed': ['isnull'], }
+
 def index(request):
 
-    tasks = Task.objects.all()
+    tasks = Task.objects.all().order_by('-date_created')
     context = {
         'new_title': "What needs to be done?",
         'tasks' : tasks
@@ -26,7 +33,7 @@ class ListTodoView(generics.ListAPIView):
     GET task/
     POST task/
     """
-    queryset = Task.objects.all()
+    queryset = Task.objects.all() #.order_by('-date_created')
     serializer_class = TasksSerializer
 
     @validate_create_data
@@ -47,6 +54,7 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Task.objects.all()
     serializer_class = TasksSerializer
+    filter_class = MyFilterSet
 
     def get(self, request, *args, **kwargs):
         try:
