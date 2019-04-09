@@ -12,6 +12,8 @@ from .decorators import validate_update_data, validate_create_data
 from .models import Task
 from .serializers import TasksSerializer
 
+from django_eventstream import send_event
+
 class MyFilterSet(filters.FilterSet):
     class Meta:
         model = Task
@@ -41,6 +43,8 @@ class ListTodoView(generics.ListAPIView):
         task = Task.objects.create(
             title=request.data["title"],
         )
+
+        send_event('todo', 'new', task.to_data())
         return Response(
             data=TasksSerializer(task).data,
             status=status.HTTP_201_CREATED
@@ -74,6 +78,8 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
             task = self.queryset.get(pk=kwargs["id"])
             serializer = TasksSerializer()
             updated_task = serializer.update(task, request.data)
+
+            send_event('todo', 'edit', updated_task.to_data())
             return Response(TasksSerializer(updated_task).data)
         except Task.DoesNotExist:
             return Response(
@@ -87,6 +93,8 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
         try:
             task = self.queryset.get(pk=kwargs["id"])
             task.delete()
+
+            send_event('todo', 'delete', task.to_data())
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Task.DoesNotExist:
             return Response(

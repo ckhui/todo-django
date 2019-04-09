@@ -22,4 +22,11 @@ class Task(models.Model):
 
     def edit_title(self):
         return self.title
+
+    def to_data(self):
+        out = {}
+        out['id'] = self.id
+        out['title'] = self.title
+        out['completed'] = self.completed
+        return out
     
