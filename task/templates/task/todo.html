@@ -1,0 +1,110 @@
+{% extends 'task/layout.html' %}
+{% load static %}
+
+{% block head %}
+<script src="{% static 'django_eventstream/json2.js' %}"></script>
+<script src="{% static 'django_eventstream/eventsource.min.js' %}"></script>
+<script src="{% static 'django_eventstream/reconnecting-eventsource.js' %}"></script>
+<script src="{% static 'task/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'task/jquery-cookie.js' %}"></script>
+{% comment %} <link rel="stylesheet" type="text/css" href="{% static 'task/style.css' %}"> {% endcomment %}
+<link rel="stylesheet" type="text/css" href="{% static 'todomvc-app-css/index.css' %}">
+{% endblock%}
+
+
+{% block content %}
+<header class="header">
+		<h1>todos</h1>
+    <input
+        class="new-todo"
+        placeholder="{{new_title}}"
+        autoFocus=True
+    />
+</header>
+
+<div class="container">
+
+<section class="main">
+<ul class="todo-list">
+  {% for task in tasks %}
+    {% with card_class=task.class_name%}
+    {% comment %} <li class="collection-item"><a href="/posts/details/{{task.id}}">{{task.title}}</a></li> {% endcomment %}
+    <li class="collection-item {{card_class}}">
+    {% endwith %}
+    <div class="view">
+        <input
+            id="checkbox-{{task.id}}"
+            class="toggle"
+            type="checkbox"
+            {% if task.completed %}checked{% endif %}
+        />
+        <label onDoubleClick={this.handleEdit}>
+            {{task.title}}
+        </label>
+        <button class="destroy" onclick='deleteFunc("{{task.id}}");' />
+    </div>
+    <input
+        class="edit"
+        value=" {{task.edit_title}}"
+    />
+</li>
+  {% endfor %}
+</ul>
+</section>
+</div>
+
+<script type="text/javascript">
+    var csrftoken = $.cookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+    var urlDomain = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
+
+    function deleteFunc(id) {
+        const url = urlDomain + '/api/v1/task/' + id + '/'
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            success: function(result) {
+                console.log("delete");
+            }
+        });
+    }
+
+    $('.toggle').click(function() {
+        var checkVal = '';
+        if($(this).prop("checked") == true) {
+            $(this).prop('checked', true);
+            checkVal = "True";
+        } else {
+            $(this).prop('checked', false);
+            checkVal = "False";
+        }
+        const id = $(this).attr('id').replace('checkbox-', '')
+        const url = urlDomain + '/api/v1/task/' + id + '/'
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            data: {completed: checkVal},
+            success: function(result) {
+                console.log("edit");
+            }
+        });
+    });
+
+
+</script>
+
+
+{% endblock %}
