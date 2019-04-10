@@ -7,18 +7,20 @@ class Task(models.Model):
     date_created = models.DateTimeField(default=datetime.now)
     completed = models.BooleanField(default=False)
 
-    editing = True
+    editing = False
 
     def __str__(self):
         return self.title
 
     def class_name(self):
+        c = []
+        if self.completed:
+            c.append('completed')
+
         if self.editing:
-            return 'editing'
-        elif self.completed:
-            return 'completed'
-        else:
-            return 'normal'
+            c.append('editing')
+            
+        return "".join(c)
 
     def edit_title(self):
         return self.title

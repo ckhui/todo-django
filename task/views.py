@@ -27,7 +27,7 @@ def index(request):
         'tasks' : tasks
     }
 
-    return render(request, 'task/index.html', context)
+    return render(request, 'task/todo.html', context)
 
 
 class ListTodoView(generics.ListAPIView):
